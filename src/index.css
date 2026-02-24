@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    @apply bg-slate-50 text-slate-800 font-sans;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer components {
+  .slide-over {
+    @apply fixed inset-y-0 right-0 z-50 flex flex-col bg-white shadow-2xl;
+    width: min(640px, 100vw);
+    transform: translateX(0);
+    transition: transform 0.25s ease;
+  }
+  .slide-over.hidden {
+    transform: translateX(100%);
+  }
+  .priority-critical { @apply bg-red-100 text-red-700 border border-red-200; }
+  .priority-high { @apply bg-orange-100 text-orange-700 border border-orange-200; }
+  .priority-medium { @apply bg-blue-100 text-blue-700 border border-blue-200; }
+  .priority-low { @apply bg-gray-100 text-gray-600 border border-gray-200; }
+
+  .status-not-started { @apply bg-gray-100 text-gray-600; }
+  .status-in-progress { @apply bg-blue-100 text-blue-700; }
+  .status-blocked { @apply bg-red-100 text-red-700; }
+  .status-under-review { @apply bg-yellow-100 text-yellow-700; }
+  .status-complete { @apply bg-green-100 text-green-700; }
+  .status-cancelled { @apply bg-gray-100 text-gray-400; }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { @apply bg-slate-100; }
+::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded; }
+::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
