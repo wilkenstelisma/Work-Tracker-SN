@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Task, TaskType, TaskStatus, Priority, Subtask, Milestone, MilestoneStatus, RecurrenceConfig } from '../types';
+import { Task, TaskType, TaskStatus, Priority, Subtask, Milestone, MilestoneStatus, RecurrenceConfig, TaskLink } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import RecurrenceConfigComp from './RecurrenceConfig';
 
@@ -35,9 +35,12 @@ export default function TaskForm({ initial = {}, onSubmit, onCancel, isEdit = fa
   const [recurrence, setRecurrence] = useState<RecurrenceConfig>(initial.recurrence || defaultRecurrence);
   const [subtasks, setSubtasks] = useState<Subtask[]>(initial.subtasks || []);
   const [milestones, setMilestones] = useState<Milestone[]>(initial.milestones || []);
+  const [links, setLinks] = useState<TaskLink[]>(initial.links || []);
   const [newSubtask, setNewSubtask] = useState('');
   const [newMsName, setNewMsName] = useState('');
   const [newMsDate, setNewMsDate] = useState('');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
+  const [newLinkLabel, setNewLinkLabel] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function validate() {
@@ -56,7 +59,7 @@ export default function TaskForm({ initial = {}, onSubmit, onCancel, isEdit = fa
       dueDate, startDate: startDate || undefined, assignee: assignee || undefined,
       notes, reminderDays, isRecurring,
       recurrence: isRecurring ? recurrence : undefined,
-      subtasks, milestones,
+      subtasks, milestones, links,
     });
   }
 
@@ -71,6 +74,15 @@ export default function TaskForm({ initial = {}, onSubmit, onCancel, isEdit = fa
     setMilestones(m => [...m, { id: uuidv4(), name: newMsName.trim(), targetDate: newMsDate, status: 'Upcoming' }]);
     setNewMsName('');
     setNewMsDate('');
+  }
+
+  function addLink() {
+    if (!newLinkUrl.trim()) return;
+    const raw = newLinkUrl.trim();
+    const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    setLinks(l => [...l, { id: uuidv4(), label: newLinkLabel.trim() || raw, url }]);
+    setNewLinkUrl('');
+    setNewLinkLabel('');
   }
 
   const fieldCls = (name: string) =>
@@ -219,6 +231,58 @@ export default function TaskForm({ initial = {}, onSubmit, onCancel, isEdit = fa
           <input className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Milestone name..." value={newMsName} onChange={e => setNewMsName(e.target.value)} />
           <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={newMsDate} onChange={e => setNewMsDate(e.target.value)} />
           <button type="button" onClick={addMilestone} className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors">Add</button>
+        </div>
+      </div>
+
+      {/* Related Links */}
+      <div>
+        <label className="block text-xs font-semibold text-slate-700 mb-2">Related Links</label>
+        <div className="space-y-1.5 mb-2">
+          {links.map(l => (
+            <div key={l.id} className="flex items-center gap-2 group">
+              <span className="text-blue-500 text-xs flex-shrink-0">🔗</span>
+              <a
+                href={l.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 hover:underline flex-1 truncate"
+                onClick={e => e.stopPropagation()}
+              >
+                {l.label}
+              </a>
+              <button
+                type="button"
+                onClick={() => setLinks(ls => ls.filter(x => x.id !== l.id))}
+                className="text-gray-300 hover:text-red-500 text-sm opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            className="w-36 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Label (optional)"
+            value={newLinkLabel}
+            onChange={e => setNewLinkLabel(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addLink())}
+          />
+          <input
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="https://..."
+            value={newLinkUrl}
+            onChange={e => setNewLinkUrl(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addLink())}
+          />
+          <button
+            type="button"
+            onClick={addLink}
+            disabled={!newLinkUrl.trim()}
+            className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-sm transition-colors"
+          >
+            Add
+          </button>
         </div>
       </div>
 

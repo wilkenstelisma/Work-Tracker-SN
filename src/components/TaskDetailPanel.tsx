@@ -222,6 +222,26 @@ export default function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps)
                   </p>
                 </div>
               )}
+              {live.links && live.links.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Related Links</h4>
+                  <div className="space-y-1.5">
+                    {live.links.map(l => (
+                      <a
+                        key={l.id}
+                        href={l.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:underline group"
+                      >
+                        <span className="text-blue-400 flex-shrink-0">🔗</span>
+                        <span className="truncate">{l.label}</span>
+                        <span className="text-xs text-gray-400 truncate hidden group-hover:inline max-w-[200px]">{l.url}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

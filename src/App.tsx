@@ -73,6 +73,7 @@ function AppShell() {
       reminderDays: data.reminderDays,
       subtasks: data.subtasks?.map(s => ({ title: s.title, status: s.status })),
       milestones: data.milestones?.map(m => ({ name: m.name, targetDate: m.targetDate, status: m.status })),
+      links: data.links?.map(l => ({ label: l.label, url: l.url })),
     });
     setShowNewTask(false);
     toast.success('Task created!');

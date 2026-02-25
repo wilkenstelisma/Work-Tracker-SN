@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  Task, Subtask, Milestone, UpdateEntry, TaskStatus, Priority, TaskType, RecurrenceConfig,
+  Task, Subtask, Milestone, UpdateEntry, TaskStatus, Priority, TaskType, RecurrenceConfig, TaskLink,
 } from '../types';
 
 const STORAGE_KEY = 'arc-tasks';
@@ -10,7 +10,10 @@ const ARCHIVE_KEY = 'arc-tasks-archive';
 function loadTasks(): Task[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    if (!raw) return [];
+    const tasks: Task[] = JSON.parse(raw);
+    // Backfill links for tasks saved before this field was added
+    return tasks.map(t => ({ ...t, links: t.links ?? [] }));
   } catch {
     return [];
   }
@@ -47,6 +50,7 @@ interface TaskStore {
     reminderDays?: number;
     subtasks?: Omit<Subtask, 'id'>[];
     milestones?: Omit<Milestone, 'id'>[];
+    links?: Omit<TaskLink, 'id'>[];
   }) => string;
   updateTask: (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt' | 'changelog' | 'updates' | 'subtasks' | 'milestones'>>) => void;
   deleteTask: (id: string) => void;
@@ -85,6 +89,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       updates: [],
       subtasks: (data.subtasks || []).map(s => ({ ...s, id: uuidv4() })),
       milestones: (data.milestones || []).map(m => ({ ...m, id: uuidv4() })),
+      links: (data.links || []).map(l => ({ ...l, id: uuidv4() })),
       createdAt: now,
       updatedAt: now,
       changelog: [makeChangelog('created', '', data.title)],

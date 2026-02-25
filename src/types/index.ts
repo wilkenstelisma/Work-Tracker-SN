@@ -38,6 +38,12 @@ export interface ChangelogEntry {
   newValue: string;
 }
 
+export interface TaskLink {
+  id: string;
+  label: string;
+  url: string;
+}
+
 export interface Subtask {
   id: string;
   title: string;
@@ -82,6 +88,7 @@ export interface Task {
   completedAt?: string;
   changelog: ChangelogEntry[];
   isPaused?: boolean;
+  links: TaskLink[];
 }
 
 export interface AlertItem {
