@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTaskStore } from '../store/taskStore';
 import { Task, TaskStatus, Priority, TaskType, TaskFilters, FilterPreset } from '../types';
@@ -7,6 +7,7 @@ import TaskDetailPanel from '../components/TaskDetailPanel';
 import { format, parseISO } from 'date-fns';
 import {
   DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   SortableContext, useSortable, verticalListSortingStrategy,
@@ -56,6 +57,16 @@ function DraggableCard({ task, onClick }: { task: Task; onClick: (t: Task) => vo
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <TaskCard task={task} onClick={onClick} className="mb-2" />
+    </div>
+  );
+}
+
+// Droppable column wrapper — makes empty columns valid drop targets
+function DroppableColumn({ status, children, className }: { status: TaskStatus; children: ReactNode; className?: string }) {
+  const { setNodeRef, isOver } = useDroppable({ id: status });
+  return (
+    <div ref={setNodeRef} className={`min-h-20 transition-colors rounded-lg ${isOver ? 'bg-blue-100/60' : ''} ${className ?? ''}`}>
+      {children}
     </div>
   );
 }
@@ -138,10 +149,21 @@ export default function AllTasks() {
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    // over.id could be a column status or a task id
-    const destStatus = KANBAN_COLS.find(s => s === over.id);
-    if (destStatus) {
-      updateTask(active.id as string, { status: destStatus });
+
+    // Case 1: dropped directly onto a column (useDroppable id = status string)
+    const destColStatus = KANBAN_COLS.find(s => s === over.id);
+    if (destColStatus) {
+      updateTask(active.id as string, { status: destColStatus });
+      return;
+    }
+
+    // Case 2: dropped onto another task — resolve to that task's column status
+    const overTask = filtered.find(t => t.id === over.id);
+    if (overTask) {
+      const activeTask = filtered.find(t => t.id === active.id);
+      if (activeTask && overTask.status !== activeTask.status) {
+        updateTask(active.id as string, { status: overTask.status });
+      }
     }
   }
 
@@ -356,11 +378,11 @@ export default function AllTasks() {
                       <span className="text-xs bg-white/70 rounded-full px-2 py-0.5 text-gray-600 font-medium">{col.tasks.length}</span>
                     </div>
                     <SortableContext items={col.tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-                      <div className="min-h-20">
+                      <DroppableColumn status={col.status}>
                         {col.tasks.map(task => (
                           <DraggableCard key={task.id} task={task} onClick={setSelectedTask} />
                         ))}
-                      </div>
+                      </DroppableColumn>
                     </SortableContext>
                   </div>
                 ))}

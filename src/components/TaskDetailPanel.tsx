@@ -41,6 +41,8 @@ export default function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps)
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showChangelogFull, setShowChangelogFull] = useState(false);
+  const [newMsName, setNewMsName] = useState('');
+  const [newMsDate, setNewMsDate] = useState('');
 
   // Get the latest task from store to always show fresh data
   const { tasks } = useTaskStore();
@@ -69,12 +71,11 @@ export default function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps)
   }
 
   function handleAddMilestone() {
-    const name = prompt('Milestone name:');
-    const date = prompt('Target date (YYYY-MM-DD):');
-    if (name && date) {
-      addMilestone(live.id, { name, targetDate: date, status: 'Upcoming' });
-      toast.success('Milestone added');
-    }
+    if (!newMsName.trim() || !newMsDate) return;
+    addMilestone(live.id, { name: newMsName.trim(), targetDate: newMsDate, status: 'Upcoming' });
+    setNewMsName('');
+    setNewMsDate('');
+    toast.success('Milestone added');
   }
 
   function handleDelete() {
@@ -270,9 +271,28 @@ export default function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps)
                 onUpdate={(msId, updates) => updateMilestone(live.id, msId, updates)}
                 onDelete={(msId) => deleteMilestone(live.id, msId)}
               />
-              <button onClick={handleAddMilestone} className="mt-4 w-full py-2 border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-blue-300 hover:text-blue-600 rounded-lg transition-colors">
-                + Add Milestone
-              </button>
+              <div className="mt-4 flex gap-2">
+                <input
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Milestone name..."
+                  value={newMsName}
+                  onChange={e => setNewMsName(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddMilestone())}
+                />
+                <input
+                  type="date"
+                  className="border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={newMsDate}
+                  onChange={e => setNewMsDate(e.target.value)}
+                />
+                <button
+                  onClick={handleAddMilestone}
+                  disabled={!newMsName.trim() || !newMsDate}
+                  className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors"
+                >
+                  Add
+                </button>
+              </div>
             </div>
           )}
 
