@@ -370,8 +370,8 @@ export default function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps)
 
       {/* Edit Modal */}
       {isEditing && (
-        <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4" onClick={() => setIsEditing(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
             <h3 className="font-semibold text-slate-800 text-lg mb-4">Edit Task</h3>
             <TaskForm initial={live} onSubmit={handleEditSave} onCancel={() => setIsEditing(false)} isEdit />
           </div>
