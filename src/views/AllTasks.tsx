@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, ReactNode } from 'react';
+import { useState, useMemo, useEffect, useRef, ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTaskStore } from '../store/taskStore';
 import { Task, TaskStatus, Priority, TaskType, TaskFilters, FilterPreset } from '../types';
@@ -19,6 +19,10 @@ const PRESETS_KEY = 'arc-filter-presets';
 
 const STATUSES: TaskStatus[] = ['Not Started', 'In Progress', 'Blocked', 'Under Review', 'Complete', 'Cancelled'];
 const PRIORITIES: Priority[] = ['Critical', 'High', 'Medium', 'Low'];
+const TASK_TYPES: TaskType[] = [
+  'System Admin', 'Digital Transformation', 'Audit Support', 'Risk Management',
+  'Reporting', 'Stakeholder Engagement', 'Ad-hoc', 'Custom',
+];
 const KANBAN_COLS: TaskStatus[] = ['Not Started', 'In Progress', 'Blocked', 'Under Review', 'Complete'];
 
 const statusColColors: Record<TaskStatus, string> = {
@@ -40,6 +44,8 @@ const statusHeaderColors: Record<TaskStatus, string> = {
 };
 
 const priorityOrder: Record<Priority, number> = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+
+type FilterCol = 'type' | 'status' | 'priority' | 'dueDate';
 
 function defaultFilters(): TaskFilters {
   return { statuses: [], priorities: [], types: [], search: '' };
@@ -81,6 +87,12 @@ export default function AllTasks() {
   const [showFilterPresets, setShowFilterPresets] = useState(false);
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'status' | 'createdAt'>('dueDate');
 
+  // Column filter state
+  const [openFilterCol, setOpenFilterCol] = useState<FilterCol | null>(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const filterBtnRefs = useRef<Partial<Record<FilterCol, HTMLButtonElement | null>>>({});
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   // Open task from query param
@@ -91,6 +103,26 @@ export default function AllTasks() {
       if (t) setSelectedTask(t);
     }
   }, [searchParams, tasks]);
+
+  // Close column filter dropdown on outside click
+  useEffect(() => {
+    if (!openFilterCol) return;
+    function handler(e: MouseEvent) {
+      const target = e.target as Node;
+      const insideDropdown = dropdownRef.current?.contains(target);
+      const insideBtn = Object.values(filterBtnRefs.current).some(btn => btn?.contains(target));
+      if (!insideDropdown && !insideBtn) setOpenFilterCol(null);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [openFilterCol]);
+
+  function openColFilter(col: FilterCol, e: React.MouseEvent<HTMLButtonElement>) {
+    if (openFilterCol === col) { setOpenFilterCol(null); return; }
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDropdownPos({ top: rect.bottom + 6, left: rect.left });
+    setOpenFilterCol(col);
+  }
 
   const filtered = useMemo(() => {
     let result = [...tasks];
@@ -150,14 +182,12 @@ export default function AllTasks() {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    // Case 1: dropped directly onto a column (useDroppable id = status string)
     const destColStatus = KANBAN_COLS.find(s => s === over.id);
     if (destColStatus) {
       updateTask(active.id as string, { status: destColStatus });
       return;
     }
 
-    // Case 2: dropped onto another task — resolve to that task's column status
     const overTask = filtered.find(t => t.id === over.id);
     if (overTask) {
       const activeTask = filtered.find(t => t.id === active.id);
@@ -173,6 +203,26 @@ export default function AllTasks() {
   }));
 
   const hasActiveFilters = filters.search || filters.statuses.length || filters.priorities.length || filters.types.length || filters.dateFrom || filters.dateTo || filters.hasSubtasks !== undefined || filters.isRecurring !== undefined;
+
+  // Helper: render a small filter button for a column header
+  function ColFilterBtn({ col, active }: { col: FilterCol; active: boolean }) {
+    return (
+      <button
+        ref={el => { filterBtnRefs.current[col] = el; }}
+        onClick={e => openColFilter(col, e)}
+        title={`Filter by ${col}`}
+        className={`ml-1 inline-flex items-center justify-center w-5 h-5 rounded transition-colors ${
+          active
+            ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
+            : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+        } ${openFilterCol === col ? 'ring-1 ring-blue-400' : ''}`}
+      >
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+          <path d="M0 1.5h10M2 5h6M3.5 8.5h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+        </svg>
+      </button>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -300,10 +350,51 @@ export default function AllTasks() {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Title</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Type</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Priority</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Due Date</th>
+
+                    {/* Type column */}
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      <div className="flex items-center">
+                        Type
+                        <ColFilterBtn col="type" active={filters.types.length > 0} />
+                        {filters.types.length > 0 && (
+                          <span className="ml-1 text-blue-600 font-bold normal-case">{filters.types.length}</span>
+                        )}
+                      </div>
+                    </th>
+
+                    {/* Status column */}
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      <div className="flex items-center">
+                        Status
+                        <ColFilterBtn col="status" active={filters.statuses.length > 0} />
+                        {filters.statuses.length > 0 && (
+                          <span className="ml-1 text-blue-600 font-bold normal-case">{filters.statuses.length}</span>
+                        )}
+                      </div>
+                    </th>
+
+                    {/* Priority column */}
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      <div className="flex items-center">
+                        Priority
+                        <ColFilterBtn col="priority" active={filters.priorities.length > 0} />
+                        {filters.priorities.length > 0 && (
+                          <span className="ml-1 text-blue-600 font-bold normal-case">{filters.priorities.length}</span>
+                        )}
+                      </div>
+                    </th>
+
+                    {/* Due Date column */}
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      <div className="flex items-center">
+                        Due Date
+                        <ColFilterBtn col="dueDate" active={!!(filters.dateFrom || filters.dateTo)} />
+                        {(filters.dateFrom || filters.dateTo) && (
+                          <span className="ml-1 text-blue-600 font-bold normal-case">•</span>
+                        )}
+                      </div>
+                    </th>
+
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Progress</th>
                   </tr>
                 </thead>
@@ -391,6 +482,128 @@ export default function AllTasks() {
           </div>
         )}
       </div>
+
+      {/* Column filter dropdown — rendered at page level, positioned fixed */}
+      {openFilterCol && (
+        <div
+          ref={dropdownRef}
+          style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, zIndex: 9999 }}
+          className="bg-white border border-gray-200 rounded-xl shadow-xl min-w-52 py-2"
+        >
+          {/* Type filter */}
+          {openFilterCol === 'type' && (
+            <>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-1.5">Task Type</p>
+              {TASK_TYPES.map(t => (
+                <label key={t} className="flex items-center gap-2.5 px-3 py-1.5 hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={filters.types.includes(t)}
+                    onChange={() => toggleFilter('types', t)}
+                    className="w-3.5 h-3.5 accent-blue-600"
+                  />
+                  <span className="text-sm text-slate-700">{t}</span>
+                </label>
+              ))}
+              {filters.types.length > 0 && (
+                <button
+                  onClick={() => setFilters(f => ({ ...f, types: [] }))}
+                  className="w-full text-left text-xs text-red-500 hover:bg-red-50 px-3 py-1.5 border-t border-gray-100 mt-1 transition-colors"
+                >
+                  Clear selection
+                </button>
+              )}
+            </>
+          )}
+
+          {/* Status filter */}
+          {openFilterCol === 'status' && (
+            <>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-1.5">Status</p>
+              {STATUSES.map(s => (
+                <label key={s} className="flex items-center gap-2.5 px-3 py-1.5 hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={filters.statuses.includes(s)}
+                    onChange={() => toggleFilter('statuses', s)}
+                    className="w-3.5 h-3.5 accent-blue-600"
+                  />
+                  <span className="text-sm text-slate-700">{s}</span>
+                </label>
+              ))}
+              {filters.statuses.length > 0 && (
+                <button
+                  onClick={() => setFilters(f => ({ ...f, statuses: [] }))}
+                  className="w-full text-left text-xs text-red-500 hover:bg-red-50 px-3 py-1.5 border-t border-gray-100 mt-1 transition-colors"
+                >
+                  Clear selection
+                </button>
+              )}
+            </>
+          )}
+
+          {/* Priority filter */}
+          {openFilterCol === 'priority' && (
+            <>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-1.5">Priority</p>
+              {PRIORITIES.map(p => (
+                <label key={p} className="flex items-center gap-2.5 px-3 py-1.5 hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={filters.priorities.includes(p)}
+                    onChange={() => toggleFilter('priorities', p)}
+                    className="w-3.5 h-3.5 accent-blue-600"
+                  />
+                  <span className="text-sm text-slate-700">{p}</span>
+                </label>
+              ))}
+              {filters.priorities.length > 0 && (
+                <button
+                  onClick={() => setFilters(f => ({ ...f, priorities: [] }))}
+                  className="w-full text-left text-xs text-red-500 hover:bg-red-50 px-3 py-1.5 border-t border-gray-100 mt-1 transition-colors"
+                >
+                  Clear selection
+                </button>
+              )}
+            </>
+          )}
+
+          {/* Due Date filter */}
+          {openFilterCol === 'dueDate' && (
+            <>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-1.5">Due Date Range</p>
+              <div className="px-3 py-1.5 space-y-2">
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">From</label>
+                  <input
+                    type="date"
+                    value={filters.dateFrom || ''}
+                    onChange={e => setFilters(f => ({ ...f, dateFrom: e.target.value || undefined }))}
+                    className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">To</label>
+                  <input
+                    type="date"
+                    value={filters.dateTo || ''}
+                    onChange={e => setFilters(f => ({ ...f, dateTo: e.target.value || undefined }))}
+                    className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              {(filters.dateFrom || filters.dateTo) && (
+                <button
+                  onClick={() => setFilters(f => ({ ...f, dateFrom: undefined, dateTo: undefined }))}
+                  className="w-full text-left text-xs text-red-500 hover:bg-red-50 px-3 py-1.5 border-t border-gray-100 mt-1 transition-colors"
+                >
+                  Clear dates
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       {selectedTask && <TaskDetailPanel task={selectedTask} onClose={() => setSelectedTask(null)} />}
     </div>
