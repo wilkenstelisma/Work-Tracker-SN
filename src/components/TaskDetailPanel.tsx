@@ -350,32 +350,26 @@ export default function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps)
 
       {/* Edit Modal */}
       {isEditing && (
-        <>
-          <div className="fixed inset-0 z-60 bg-black/40" onClick={() => setIsEditing(false)} />
-          <div className="fixed inset-0 z-70 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-              <h3 className="font-semibold text-slate-800 text-lg mb-4">Edit Task</h3>
-              <TaskForm initial={live} onSubmit={handleEditSave} onCancel={() => setIsEditing(false)} isEdit />
-            </div>
+        <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4" onClick={() => setIsEditing(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
+            <h3 className="font-semibold text-slate-800 text-lg mb-4">Edit Task</h3>
+            <TaskForm initial={live} onSubmit={handleEditSave} onCancel={() => setIsEditing(false)} isEdit />
           </div>
-        </>
+        </div>
       )}
 
       {/* Delete Confirm */}
       {showDeleteConfirm && (
-        <>
-          <div className="fixed inset-0 z-60 bg-black/40" onClick={() => setShowDeleteConfirm(false)} />
-          <div className="fixed inset-0 z-70 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full">
-              <h3 className="font-semibold text-slate-800 mb-2">Delete Task?</h3>
-              <p className="text-sm text-gray-600 mb-5">This will permanently delete "<strong>{live.title}</strong>" and all its data.</p>
-              <div className="flex justify-end gap-3">
-                <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
-                <button onClick={handleDelete} className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">Delete</button>
-              </div>
+        <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+            <h3 className="font-semibold text-slate-800 mb-2">Delete Task?</h3>
+            <p className="text-sm text-gray-600 mb-5">This will permanently delete "<strong>{live.title}</strong>" and all its data.</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
+              <button onClick={handleDelete} className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">Delete</button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </>
   );

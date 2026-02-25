@@ -99,25 +99,22 @@ function AppShell() {
 
       {/* New Task Modal */}
       {showNewTask && (
-        <>
-          <div className="fixed inset-0 z-50 bg-black/40" onClick={() => setShowNewTask(false)} />
-          <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white px-6 pt-6 pb-4 border-b border-gray-100">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-slate-800 text-lg">New Task</h3>
-                  <button onClick={() => setShowNewTask(false)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
-                </div>
-              </div>
-              <div className="p-6">
-                <TaskForm
-                  onSubmit={handleCreateTask}
-                  onCancel={() => setShowNewTask(false)}
-                />
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setShowNewTask(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white px-6 pt-6 pb-4 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-slate-800 text-lg">New Task</h3>
+                <button onClick={() => setShowNewTask(false)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
               </div>
             </div>
+            <div className="p-6">
+              <TaskForm
+                onSubmit={handleCreateTask}
+                onCancel={() => setShowNewTask(false)}
+              />
+            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
