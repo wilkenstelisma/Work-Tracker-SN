@@ -37,7 +37,6 @@ export default function Projects() {
   const { tasks } = useTaskStore();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showNewProject, setShowNewProject] = useState(false);
-  const [newTaskProjectId, setNewTaskProjectId] = useState<string | null>(null);
   const [filterStatuses, setFilterStatuses] = useState<ProjectStatus[]>([]);
   const [filterPriorities, setFilterPriorities] = useState<Priority[]>([]);
   const [sortBy, setSortBy] = useState<'targetDate' | 'priority' | 'name' | 'createdAt'>('targetDate');
@@ -94,11 +93,6 @@ export default function Projects() {
       links: data.links || [],
     });
     setShowNewProject(false);
-  }
-
-  // When ProjectDetailPanel requests a new task for this project
-  function handleNewTask(projectId: string) {
-    setNewTaskProjectId(projectId);
   }
 
   // Live-update selectedProject from store
@@ -281,31 +275,10 @@ export default function Projects() {
         </div>
       )}
 
-      {/* Add Task to Project — inline quick-add form */}
-      {newTaskProjectId && (
-        <div className="fixed inset-0 z-[70] bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-            <h3 className="font-semibold text-slate-800 text-base mb-1">Add Task to Project</h3>
-            <p className="text-xs text-gray-500 mb-4">
-              To add a task with full details, use the main "New Task" button and select this project from the Project dropdown.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setNewTaskProjectId(null)}
-                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {liveSelected && (
         <ProjectDetailPanel
           project={liveSelected}
           onClose={() => setSelectedProject(null)}
-          onNewTask={handleNewTask}
         />
       )}
     </div>

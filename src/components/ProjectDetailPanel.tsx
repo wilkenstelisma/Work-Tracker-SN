@@ -3,13 +3,14 @@ import { Project, ProjectStatus, Task } from '../types';
 import { useProjectStore } from '../store/projectStore';
 import { useTaskStore } from '../store/taskStore';
 import { format, parseISO, isBefore, isToday } from 'date-fns';
+import toast from 'react-hot-toast';
 import TaskDetailPanel from './TaskDetailPanel';
 import ProjectForm from './ProjectForm';
+import TaskForm from './TaskForm';
 
 interface ProjectDetailPanelProps {
   project: Project;
   onClose: () => void;
-  onNewTask: (projectId: string) => void;
 }
 
 type Tab = 'details' | 'tasks' | 'progress';
@@ -40,12 +41,13 @@ const taskStatusColors: Record<string, string> = {
 
 const ALL_TASK_STATUSES = ['Not Started', 'In Progress', 'Blocked', 'Under Review', 'Complete', 'Cancelled'];
 
-export default function ProjectDetailPanel({ project, onClose, onNewTask }: ProjectDetailPanelProps) {
+export default function ProjectDetailPanel({ project, onClose }: ProjectDetailPanelProps) {
   const { updateProject, deleteProject } = useProjectStore();
-  const { tasks, updateTask } = useTaskStore();
+  const { tasks, createTask, updateTask } = useTaskStore();
   const [activeTab, setActiveTab] = useState<Tab>('details');
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showAddTask, setShowAddTask] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   // Live project data (re-reads from store so edits reflect immediately)
@@ -74,7 +76,7 @@ export default function ProjectDetailPanel({ project, onClose, onNewTask }: Proj
   }
 
   function handleDelete() {
-    // Clear projectId from all linked tasks
+    // Clear projectId from all linked tasks before deleting
     projectTasks.forEach(t => updateTask(t.id, { projectId: undefined }));
     deleteProject(live.id);
     onClose();
@@ -82,6 +84,30 @@ export default function ProjectDetailPanel({ project, onClose, onNewTask }: Proj
 
   function handleUnlinkTask(taskId: string) {
     updateTask(taskId, { projectId: undefined });
+  }
+
+  function handleAddTask(data: Partial<Task>) {
+    if (!data.title || !data.dueDate || !data.priority || !data.taskType) return;
+    createTask({
+      title: data.title,
+      taskType: data.taskType,
+      status: data.status || 'Not Started',
+      priority: data.priority,
+      dueDate: data.dueDate,
+      description: data.description,
+      startDate: data.startDate,
+      assignee: data.assignee,
+      notes: data.notes,
+      isRecurring: data.isRecurring,
+      recurrence: data.recurrence,
+      reminderDays: data.reminderDays,
+      subtasks: data.subtasks?.map(s => ({ title: s.title, status: s.status })),
+      milestones: data.milestones?.map(m => ({ name: m.name, targetDate: m.targetDate, status: m.status })),
+      links: data.links?.map(l => ({ label: l.label, url: l.url })),
+      projectId: live.id,
+    });
+    setShowAddTask(false);
+    toast.success('Task created and linked to project!');
   }
 
   return (
@@ -261,8 +287,8 @@ export default function ProjectDetailPanel({ project, onClose, onNewTask }: Proj
               )}
 
               <button
-                onClick={() => onNewTask(live.id)}
-                className="w-full mt-2 py-2 border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 text-sm text-gray-500 hover:text-blue-600 rounded-lg transition-colors"
+                onClick={() => setShowAddTask(true)}
+                className="w-full mt-2 py-2.5 border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 text-sm text-gray-500 hover:text-blue-600 rounded-lg transition-colors"
               >
                 + Add Task to Project
               </button>
@@ -337,6 +363,30 @@ export default function ProjectDetailPanel({ project, onClose, onNewTask }: Proj
           )}
         </div>
       </div>
+
+      {/* Add Task Modal */}
+      {showAddTask && (
+        <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white px-6 pt-6 pb-4 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-slate-800 text-lg">New Task</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Will be linked to <span className="font-medium text-slate-700">{live.name}</span></p>
+                </div>
+                <button onClick={() => setShowAddTask(false)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+              </div>
+            </div>
+            <div className="p-6">
+              <TaskForm
+                initial={{ projectId: live.id }}
+                onSubmit={handleAddTask}
+                onCancel={() => setShowAddTask(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Modal */}
       {isEditing && (
