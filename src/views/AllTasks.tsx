@@ -4,7 +4,7 @@ import { useTaskStore } from '../store/taskStore';
 import { Task, TaskStatus, Priority, TaskType, TaskFilters, FilterPreset } from '../types';
 import TaskCard from '../components/TaskCard';
 import TaskDetailPanel from '../components/TaskDetailPanel';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, subDays, startOfWeek, endOfWeek } from 'date-fns';
 import {
   DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors,
   useDroppable,
@@ -103,6 +103,25 @@ export default function AllTasks() {
       if (t) setSelectedTask(t);
     }
   }, [searchParams, tasks]);
+
+  // Apply named filter preset from ?filter= URL param (set by dashboard tiles)
+  const filterParamRef = useRef(searchParams.get('filter'));
+  useEffect(() => {
+    const preset = filterParamRef.current;
+    if (!preset) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const ACTIVE: TaskStatus[] = ['Not Started', 'In Progress', 'Blocked', 'Under Review'];
+    const presetMap: Record<string, Partial<TaskFilters>> = {
+      'open':             { statuses: ACTIVE },
+      'overdue':          { statuses: ACTIVE, dateTo: format(subDays(today, 1), 'yyyy-MM-dd') },
+      'due-today':        { statuses: ACTIVE, dateFrom: format(today, 'yyyy-MM-dd'), dateTo: format(today, 'yyyy-MM-dd') },
+      'due-this-week':    { statuses: ACTIVE, dateFrom: format(startOfWeek(today, { weekStartsOn: 1 }), 'yyyy-MM-dd'), dateTo: format(endOfWeek(today, { weekStartsOn: 1 }), 'yyyy-MM-dd') },
+      'completed-month':  { statuses: ['Complete'] },
+    };
+    const applied = presetMap[preset];
+    if (applied) setFilters(f => ({ ...f, ...applied }));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close column filter dropdown on outside click
   useEffect(() => {

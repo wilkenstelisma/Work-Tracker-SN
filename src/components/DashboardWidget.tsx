@@ -4,6 +4,7 @@ interface DashboardWidgetProps {
   color: 'red' | 'orange' | 'blue' | 'green' | 'gray';
   icon: string;
   sublabel?: string;
+  onClick?: () => void;
 }
 
 const colorMap = {
@@ -22,9 +23,12 @@ const countColorMap = {
   gray: 'text-gray-600',
 };
 
-export default function DashboardWidget({ label, count, color, icon, sublabel }: DashboardWidgetProps) {
+export default function DashboardWidget({ label, count, color, icon, sublabel, onClick }: DashboardWidgetProps) {
   return (
-    <div className={`rounded-xl border p-5 ${colorMap[color]}`}>
+    <div
+      className={`rounded-xl border p-5 ${colorMap[color]} ${onClick ? 'cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all active:scale-[0.98]' : ''}`}
+      onClick={onClick}
+    >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium opacity-80">{label}</p>

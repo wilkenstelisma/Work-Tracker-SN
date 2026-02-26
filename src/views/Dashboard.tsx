@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTaskStore } from '../store/taskStore';
 import { isToday, isBefore, parseISO, isThisWeek, isThisMonth } from 'date-fns';
 import DashboardWidget from '../components/DashboardWidget';
@@ -8,6 +9,7 @@ import { Task } from '../types';
 
 export default function Dashboard() {
   const { tasks } = useTaskStore();
+  const navigate = useNavigate();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const today = new Date();
@@ -44,18 +46,47 @@ export default function Dashboard() {
 
       {/* Summary Widgets */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <DashboardWidget label="Total Open" count={openCount} color="blue" icon="📋" />
-        <DashboardWidget label="Overdue" count={overdue.length} color="red" icon="⚠️" sublabel="Needs immediate attention" />
-        <DashboardWidget label="Due This Week" count={dueThisWeek} color="orange" icon="📅" />
-        <DashboardWidget label="Completed This Month" count={completedThisMonth} color="green" icon="✅" />
+        <DashboardWidget
+          label="Total Open"
+          count={openCount}
+          color="blue"
+          icon="📋"
+          onClick={() => navigate('/tasks?filter=open')}
+        />
+        <DashboardWidget
+          label="Overdue"
+          count={overdue.length}
+          color="red"
+          icon="⚠️"
+          sublabel="Needs immediate attention"
+          onClick={() => navigate('/tasks?filter=overdue')}
+        />
+        <DashboardWidget
+          label="Due This Week"
+          count={dueThisWeek}
+          color="orange"
+          icon="📅"
+          onClick={() => navigate('/tasks?filter=due-this-week')}
+        />
+        <DashboardWidget
+          label="Completed This Month"
+          count={completedThisMonth}
+          color="green"
+          icon="✅"
+          onClick={() => navigate('/tasks?filter=completed-month')}
+        />
       </div>
 
       {/* Overdue Tasks */}
       {overdue.length > 0 && (
         <section>
-          <h3 className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-3 flex items-center gap-2">
+          <button
+            onClick={() => navigate('/tasks?filter=overdue')}
+            className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-3 flex items-center gap-2 hover:text-red-800 transition-colors"
+          >
             <span>⚠</span> Overdue ({overdue.length})
-          </h3>
+            <span className="text-xs normal-case font-normal opacity-60 ml-1">View all →</span>
+          </button>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {overdue.map(task => (
               <TaskCard key={task.id} task={task} onClick={setSelectedTask} />
@@ -67,9 +98,13 @@ export default function Dashboard() {
       {/* Due Today */}
       {dueToday.length > 0 && (
         <section>
-          <h3 className="text-sm font-semibold text-amber-600 uppercase tracking-wide mb-3 flex items-center gap-2">
+          <button
+            onClick={() => navigate('/tasks?filter=due-today')}
+            className="text-sm font-semibold text-amber-600 uppercase tracking-wide mb-3 flex items-center gap-2 hover:text-amber-800 transition-colors"
+          >
             <span>📅</span> Due Today ({dueToday.length})
-          </h3>
+            <span className="text-xs normal-case font-normal opacity-60 ml-1">View all →</span>
+          </button>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {dueToday.map(task => (
               <TaskCard key={task.id} task={task} onClick={setSelectedTask} />
