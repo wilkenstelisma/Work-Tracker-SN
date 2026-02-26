@@ -51,6 +51,7 @@ interface TaskStore {
     subtasks?: Omit<Subtask, 'id'>[];
     milestones?: Omit<Milestone, 'id'>[];
     links?: Omit<TaskLink, 'id'>[];
+    projectId?: string;
   }) => string;
   updateTask: (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt' | 'changelog' | 'updates' | 'subtasks' | 'milestones'>>) => void;
   deleteTask: (id: string) => void;
@@ -90,6 +91,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       subtasks: (data.subtasks || []).map(s => ({ ...s, id: uuidv4() })),
       milestones: (data.milestones || []).map(m => ({ ...m, id: uuidv4() })),
       links: (data.links || []).map(l => ({ ...l, id: uuidv4() })),
+      projectId: data.projectId,
       createdAt: now,
       updatedAt: now,
       changelog: [makeChangelog('created', '', data.title)],

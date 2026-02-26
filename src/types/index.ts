@@ -1,3 +1,19 @@
+export type ProjectStatus = 'Planning' | 'Active' | 'On Hold' | 'Complete' | 'Cancelled';
+
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  status: ProjectStatus;
+  priority: Priority;
+  targetDate: string;
+  startDate?: string;
+  owner?: string;
+  links: TaskLink[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type TaskType =
   | 'System Admin'
   | 'Digital Transformation'
@@ -89,6 +105,7 @@ export interface Task {
   changelog: ChangelogEntry[];
   isPaused?: boolean;
   links: TaskLink[];
+  projectId?: string;
 }
 
 export interface AlertItem {

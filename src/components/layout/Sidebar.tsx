@@ -9,6 +9,7 @@ interface NavItem {
 const items: NavItem[] = [
   { to: '/', label: 'Dashboard', icon: '⊞' },
   { to: '/tasks', label: 'All Tasks', icon: '☰' },
+  { to: '/projects', label: 'Projects', icon: '📁' },
   { to: '/calendar', label: 'Calendar', icon: '📅' },
   { to: '/recurring', label: 'Recurring', icon: '↻' },
   { to: '/alerts', label: 'Alerts', icon: '🔔' },

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Task, TaskType, TaskStatus, Priority, Subtask, Milestone, MilestoneStatus, RecurrenceConfig, TaskLink } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import RecurrenceConfigComp from './RecurrenceConfig';
+import { useProjectStore } from '../store/projectStore';
 
 interface TaskFormProps {
   initial?: Partial<Task>;
@@ -21,6 +22,9 @@ const MS_STATUSES: MilestoneStatus[] = ['Upcoming', 'In Progress', 'Achieved', '
 const defaultRecurrence: RecurrenceConfig = { pattern: 'Weekly', interval: 1, cycleCount: 0 };
 
 export default function TaskForm({ initial = {}, onSubmit, onCancel, isEdit = false }: TaskFormProps) {
+  const { projects } = useProjectStore();
+  const activeProjects = projects.filter(p => p.status !== 'Complete' && p.status !== 'Cancelled');
+
   const [title, setTitle] = useState(initial.title || '');
   const [description, setDescription] = useState(initial.description || '');
   const [taskType, setTaskType] = useState<TaskType>(initial.taskType || 'System Admin');
@@ -36,6 +40,7 @@ export default function TaskForm({ initial = {}, onSubmit, onCancel, isEdit = fa
   const [subtasks, setSubtasks] = useState<Subtask[]>(initial.subtasks || []);
   const [milestones, setMilestones] = useState<Milestone[]>(initial.milestones || []);
   const [links, setLinks] = useState<TaskLink[]>(initial.links || []);
+  const [projectId, setProjectId] = useState<string>(initial.projectId || '');
   const [newSubtask, setNewSubtask] = useState('');
   const [newMsName, setNewMsName] = useState('');
   const [newMsDate, setNewMsDate] = useState('');
@@ -60,6 +65,7 @@ export default function TaskForm({ initial = {}, onSubmit, onCancel, isEdit = fa
       notes, reminderDays, isRecurring,
       recurrence: isRecurring ? recurrence : undefined,
       subtasks, milestones, links,
+      projectId: projectId || undefined,
     });
   }
 
@@ -119,6 +125,19 @@ export default function TaskForm({ initial = {}, onSubmit, onCancel, isEdit = fa
           </select>
         </div>
       </div>
+
+      {/* Project */}
+      {activeProjects.length > 0 && (
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">Project</label>
+          <select className={fieldCls('')} value={projectId} onChange={e => setProjectId(e.target.value)}>
+            <option value="">— No project —</option>
+            {activeProjects.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Row: Status + Due Date */}
       <div className="grid grid-cols-2 gap-3">

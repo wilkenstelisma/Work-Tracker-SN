@@ -5,6 +5,7 @@ import Sidebar from './components/layout/Sidebar';
 import TopNav from './components/layout/TopNav';
 import Dashboard from './views/Dashboard';
 import AllTasks from './views/AllTasks';
+import Projects from './views/Projects';
 import CalendarView from './views/CalendarView';
 import RecurringTasks from './views/RecurringTasks';
 import AlertsNotifications from './views/AlertsNotifications';
@@ -20,6 +21,7 @@ import { Task } from './types';
 const pageTitles: Record<string, string> = {
   '/': 'Dashboard',
   '/tasks': 'All Tasks',
+  '/projects': 'Projects',
   '/calendar': 'Calendar',
   '/recurring': 'Recurring Tasks',
   '/alerts': 'Alerts & Notifications',
@@ -34,6 +36,7 @@ function PageTitle({ children }: { children: React.ReactNode }) {
 
 function AppShell() {
   const [showNewTask, setShowNewTask] = useState(false);
+  const [newTaskProjectId, setNewTaskProjectId] = useState<string | undefined>();
   const { tasks, createTask } = useTaskStore();
   const { setAlerts } = useNotificationStore();
   const location = useLocation();
@@ -74,8 +77,10 @@ function AppShell() {
       subtasks: data.subtasks?.map(s => ({ title: s.title, status: s.status })),
       milestones: data.milestones?.map(m => ({ name: m.name, targetDate: m.targetDate, status: m.status })),
       links: data.links?.map(l => ({ label: l.label, url: l.url })),
+      projectId: data.projectId,
     });
     setShowNewTask(false);
+    setNewTaskProjectId(undefined);
     toast.success('Task created!');
   }
 
@@ -85,11 +90,12 @@ function AppShell() {
     <div className="flex h-screen overflow-hidden bg-slate-50">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <TopNav onNewTask={() => setShowNewTask(true)} pageTitle={pageTitle} />
+        <TopNav onNewTask={() => { setNewTaskProjectId(undefined); setShowNewTask(true); }} pageTitle={pageTitle} />
         <main className="flex-1 overflow-auto">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/tasks" element={<AllTasks />} />
+            <Route path="/projects" element={<Projects />} />
             <Route path="/calendar" element={<CalendarView />} />
             <Route path="/recurring" element={<RecurringTasks />} />
             <Route path="/alerts" element={<AlertsNotifications />} />
