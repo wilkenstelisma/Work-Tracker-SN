@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  Task, Subtask, Milestone, UpdateEntry, TaskStatus, Priority, TaskType, RecurrenceConfig, TaskLink,
+  Task, Subtask, Milestone, UpdateEntry, TaskStatus, Priority, RecurrenceConfig, TaskLink,
 } from '../types';
 
 const STORAGE_KEY = 'arc-tasks';
@@ -37,7 +37,7 @@ interface TaskStore {
   tasks: Task[];
   createTask: (data: {
     title: string;
-    taskType: TaskType;
+    taskType: string;
     status: TaskStatus;
     priority: Priority;
     dueDate: string;

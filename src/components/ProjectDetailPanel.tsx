@@ -54,7 +54,9 @@ export default function ProjectDetailPanel({ project, onClose }: ProjectDetailPa
   const live = useProjectStore(s => s.projects.find(p => p.id === project.id) ?? project);
 
   const projectTasks = useMemo(
-    () => tasks.filter(t => t.projectId === live.id),
+    () => tasks
+      .filter(t => t.projectId === live.id)
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()),
     [tasks, live.id]
   );
 

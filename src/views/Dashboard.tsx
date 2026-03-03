@@ -1,11 +1,20 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTaskStore } from '../store/taskStore';
-import { isToday, isBefore, parseISO, isThisWeek, isThisMonth } from 'date-fns';
+import { isToday, isBefore, addDays, isAfter, parseISO, isThisWeek, isThisMonth, format } from 'date-fns';
 import DashboardWidget from '../components/DashboardWidget';
 import TaskCard from '../components/TaskCard';
 import TaskDetailPanel from '../components/TaskDetailPanel';
 import { Task } from '../types';
+
+interface MilestoneRow {
+  milestoneId: string;
+  milestoneName: string;
+  taskId: string;
+  taskTitle: string;
+  date: string;
+  task: Task;
+}
 
 export default function Dashboard() {
   const { tasks } = useTaskStore();
@@ -31,9 +40,46 @@ export default function Dashboard() {
     [tasks]
   );
 
+  // Milestone rows: only from active (non-Complete, non-Cancelled) tasks
+  const milestoneSections = useMemo(() => {
+    const overdueMilestones: MilestoneRow[] = [];
+    const dueSoonMilestones: MilestoneRow[] = [];
+
+    for (const task of active) {
+      if (task.status === 'Complete') continue;
+      for (const ms of task.milestones) {
+        if (ms.status === 'Achieved' || ms.status === 'Missed') continue;
+        const msDate = parseISO(ms.targetDate);
+        msDate.setHours(0, 0, 0, 0);
+        const row: MilestoneRow = {
+          milestoneId: ms.id,
+          milestoneName: ms.name,
+          taskId: task.id,
+          taskTitle: task.title,
+          date: ms.targetDate,
+          task,
+        };
+        if (isBefore(msDate, today)) {
+          overdueMilestones.push(row);
+        } else if (isAfter(addDays(today, 3), msDate)) {
+          dueSoonMilestones.push(row);
+        }
+      }
+    }
+
+    overdueMilestones.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    dueSoonMilestones.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    return { overdueMilestones, dueSoonMilestones };
+  }, [tasks]);
+
+  const { overdueMilestones, dueSoonMilestones } = milestoneSections;
+
   const openCount = active.filter(t => t.status !== 'Complete').length;
   const dueThisWeek = active.filter(t => t.status !== 'Complete' && isThisWeek(parseISO(t.dueDate), { weekStartsOn: 1 })).length;
   const completedThisMonth = tasks.filter(t => t.status === 'Complete' && t.completedAt && isThisMonth(parseISO(t.completedAt))).length;
+
+  const allClear = overdue.length === 0 && dueToday.length === 0 && overdueMilestones.length === 0 && dueSoonMilestones.length === 0;
 
   return (
     <div className="p-6 space-y-6 max-w-5xl mx-auto">
@@ -113,12 +159,64 @@ export default function Dashboard() {
         </section>
       )}
 
+      {/* Overdue Milestones */}
+      {overdueMilestones.length > 0 && (
+        <section>
+          <p className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-3 flex items-center gap-2">
+            <span>🚩</span> Overdue Milestones ({overdueMilestones.length})
+          </p>
+          <div className="space-y-2">
+            {overdueMilestones.map(row => (
+              <div
+                key={row.milestoneId}
+                onClick={() => setSelectedTask(row.task)}
+                className="flex items-center justify-between px-4 py-3 bg-white border border-red-200 rounded-xl hover:border-red-400 hover:bg-red-50 cursor-pointer transition-colors"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-slate-800 truncate">{row.milestoneName}</p>
+                  <p className="text-xs text-gray-500 truncate mt-0.5">{row.taskTitle}</p>
+                </div>
+                <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-0.5 rounded-full flex-shrink-0 ml-3">
+                  {format(parseISO(row.date), 'MMM d')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Milestones Due Soon */}
+      {dueSoonMilestones.length > 0 && (
+        <section>
+          <p className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-3 flex items-center gap-2">
+            <span>🔵</span> Milestones Due Soon ({dueSoonMilestones.length})
+          </p>
+          <div className="space-y-2">
+            {dueSoonMilestones.map(row => (
+              <div
+                key={row.milestoneId}
+                onClick={() => setSelectedTask(row.task)}
+                className="flex items-center justify-between px-4 py-3 bg-white border border-blue-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 cursor-pointer transition-colors"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-slate-800 truncate">{row.milestoneName}</p>
+                  <p className="text-xs text-gray-500 truncate mt-0.5">{row.taskTitle}</p>
+                </div>
+                <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full flex-shrink-0 ml-3">
+                  {format(parseISO(row.date), 'MMM d')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Empty state */}
-      {overdue.length === 0 && dueToday.length === 0 && (
+      {allClear && (
         <div className="text-center py-16 text-gray-400">
           <div className="text-5xl mb-4">✓</div>
           <p className="text-lg font-medium text-gray-500">All clear for today!</p>
-          <p className="text-sm mt-1">No overdue or due-today tasks.</p>
+          <p className="text-sm mt-1">No overdue or due-today tasks or milestones.</p>
         </div>
       )}
 

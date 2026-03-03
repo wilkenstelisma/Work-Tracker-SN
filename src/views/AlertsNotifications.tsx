@@ -5,13 +5,14 @@ import { AlertItem, AlertType } from '../types';
 import { format, parseISO } from 'date-fns';
 
 const typeConfig: Record<AlertType, { label: string; desc: string; color: string; icon: string; bg: string }> = {
-  overdue:              { label: 'Overdue',         desc: 'Past due date, not complete', color: 'text-red-700',    icon: '🔴', bg: 'bg-red-50 border-red-200' },
-  'due-today':          { label: 'Due Today',       desc: 'Must be addressed today',     color: 'text-amber-700',  icon: '🟡', bg: 'bg-amber-50 border-amber-200' },
-  'at-risk':            { label: 'At Risk',         desc: 'High/Critical, due soon',     color: 'text-orange-700', icon: '🟠', bg: 'bg-orange-50 border-orange-200' },
-  'milestone-due-soon': { label: 'Milestone Soon',  desc: 'Milestone within 3 days',     color: 'text-blue-700',   icon: '🔵', bg: 'bg-blue-50 border-blue-200' },
+  overdue:              { label: 'Overdue',            desc: 'Past due date, not complete',      color: 'text-red-700',    icon: '🔴', bg: 'bg-red-50 border-red-200' },
+  'due-today':          { label: 'Due Today',          desc: 'Must be addressed today',          color: 'text-amber-700',  icon: '🟡', bg: 'bg-amber-50 border-amber-200' },
+  'at-risk':            { label: 'At Risk',            desc: 'High/Critical, due soon',          color: 'text-orange-700', icon: '🟠', bg: 'bg-orange-50 border-orange-200' },
+  'milestone-overdue':  { label: 'Milestone Overdue',  desc: 'Milestone passed without completion', color: 'text-red-700', icon: '🚩', bg: 'bg-red-50 border-red-200' },
+  'milestone-due-soon': { label: 'Milestone Soon',     desc: 'Milestone within 3 days',          color: 'text-blue-700',   icon: '🔵', bg: 'bg-blue-50 border-blue-200' },
 };
 
-const typeOrder: AlertType[] = ['overdue', 'due-today', 'at-risk', 'milestone-due-soon'];
+const typeOrder: AlertType[] = ['overdue', 'due-today', 'at-risk', 'milestone-overdue', 'milestone-due-soon'];
 
 export default function AlertsNotifications() {
   const { alerts, dismissed, dismissAlert, clearAll } = useNotificationStore();

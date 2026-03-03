@@ -52,12 +52,24 @@ export function computeAlerts(tasks: Task[]): AlertItem[] {
       });
     }
 
-    // Milestone Due Soon (within 3 days)
+    // Milestone alerts
     for (const ms of task.milestones) {
       if (ms.status === 'Achieved' || ms.status === 'Missed') continue;
       const msDate = parseISO(ms.targetDate);
       msDate.setHours(0, 0, 0, 0);
-      if (!isBefore(msDate, today) && isAfter(addDays(today, 3), msDate)) {
+      if (isBefore(msDate, today)) {
+        // Overdue milestone
+        alerts.push({
+          id: alertId('milestone-overdue', task.id, ms.id),
+          type: 'milestone-overdue',
+          taskId: task.id,
+          taskTitle: task.title,
+          milestoneId: ms.id,
+          milestoneName: ms.name,
+          date: ms.targetDate,
+        });
+      } else if (isAfter(addDays(today, 3), msDate)) {
+        // Due within 3 days
         alerts.push({
           id: alertId('milestone-due-soon', task.id, ms.id),
           type: 'milestone-due-soon',

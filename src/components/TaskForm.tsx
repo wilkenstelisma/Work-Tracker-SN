@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Task, TaskType, TaskStatus, Priority, Subtask, Milestone, MilestoneStatus, RecurrenceConfig, TaskLink } from '../types';
+import { Task, TaskStatus, Priority, Subtask, Milestone, MilestoneStatus, RecurrenceConfig, TaskLink } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import RecurrenceConfigComp from './RecurrenceConfig';
 import { useProjectStore } from '../store/projectStore';
+import { useTaskTypeStore } from '../store/taskTypeStore';
 
 interface TaskFormProps {
   initial?: Partial<Task>;
@@ -11,10 +12,6 @@ interface TaskFormProps {
   isEdit?: boolean;
 }
 
-const TASK_TYPES: TaskType[] = [
-  'System Admin', 'Digital Transformation', 'Audit Support', 'Risk Management',
-  'Reporting', 'Stakeholder Engagement', 'Ad-hoc', 'Custom',
-];
 const STATUSES: TaskStatus[] = ['Not Started', 'In Progress', 'Blocked', 'Under Review', 'Complete', 'Cancelled'];
 const PRIORITIES: Priority[] = ['Critical', 'High', 'Medium', 'Low'];
 const MS_STATUSES: MilestoneStatus[] = ['Upcoming', 'In Progress', 'Achieved', 'Missed'];
@@ -23,11 +20,12 @@ const defaultRecurrence: RecurrenceConfig = { pattern: 'Weekly', interval: 1, cy
 
 export default function TaskForm({ initial = {}, onSubmit, onCancel, isEdit = false }: TaskFormProps) {
   const { projects } = useProjectStore();
+  const { taskTypes } = useTaskTypeStore();
   const activeProjects = projects.filter(p => p.status !== 'Complete' && p.status !== 'Cancelled');
 
   const [title, setTitle] = useState(initial.title || '');
   const [description, setDescription] = useState(initial.description || '');
-  const [taskType, setTaskType] = useState<TaskType>(initial.taskType || 'System Admin');
+  const [taskType, setTaskType] = useState<string>(initial.taskType || taskTypes[0] || 'System Admin');
   const [status, setStatus] = useState<TaskStatus>(initial.status || 'Not Started');
   const [priority, setPriority] = useState<Priority>(initial.priority || 'Medium');
   const [dueDate, setDueDate] = useState(initial.dueDate || '');
@@ -114,8 +112,8 @@ export default function TaskForm({ initial = {}, onSubmit, onCancel, isEdit = fa
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">Type</label>
-          <select className={fieldCls('')} value={taskType} onChange={e => setTaskType(e.target.value as TaskType)}>
-            {TASK_TYPES.map(t => <option key={t}>{t}</option>)}
+          <select className={fieldCls('')} value={taskType} onChange={e => setTaskType(e.target.value)}>
+            {taskTypes.map(t => <option key={t}>{t}</option>)}
           </select>
         </div>
         <div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTaskStore } from '../store/taskStore';
+import { useTaskTypeStore } from '../store/taskTypeStore';
 import { exportToCSV, exportToPDF, exportBackupJSON } from '../utils/export';
 import toast from 'react-hot-toast';
 import { Task } from '../types';
@@ -17,6 +18,8 @@ function loadSettings(): Partial<AppSettings> {
 
 export default function Settings() {
   const { tasks, archiveOldCompleted, importTasks } = useTaskStore();
+  const { taskTypes, addTaskType, removeTaskType } = useTaskTypeStore();
+  const [newTypeName, setNewTypeName] = useState('');
   const savedSettings = loadSettings();
   const [reminderDays, setReminderDays] = useState(savedSettings.defaultReminderDays ?? 2);
   const [browserNotifs, setBrowserNotifs] = useState(savedSettings.browserNotifications ?? false);
@@ -190,6 +193,75 @@ export default function Settings() {
           <span>📁</span> Choose Backup File
           <input type="file" accept=".json" onChange={handleImport} className="hidden" />
         </label>
+      </section>
+
+      {/* Task Types */}
+      <section className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+        <div>
+          <h3 className="font-semibold text-slate-700 text-sm uppercase tracking-wide">Task Types</h3>
+          <p className="text-xs text-gray-500 mt-1">Customize the task type options available when creating or editing tasks.</p>
+        </div>
+
+        <div className="space-y-1.5">
+          {taskTypes.map(type => (
+            <div key={type} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg group">
+              <span className="text-sm text-slate-700">{type}</span>
+              <button
+                onClick={() => {
+                  if (taskTypes.length <= 1) {
+                    toast.error('At least one task type is required.');
+                    return;
+                  }
+                  removeTaskType(type);
+                  toast.success(`Removed "${type}"`);
+                }}
+                className="text-gray-300 hover:text-red-500 text-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Remove type"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-2 pt-1">
+          <input
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="New task type name..."
+            value={newTypeName}
+            onChange={e => setNewTypeName(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                if (!newTypeName.trim()) return;
+                if (taskTypes.includes(newTypeName.trim())) {
+                  toast.error('That type already exists.');
+                  return;
+                }
+                addTaskType(newTypeName.trim());
+                setNewTypeName('');
+                toast.success(`Added "${newTypeName.trim()}"`);
+              }
+            }}
+            maxLength={50}
+          />
+          <button
+            onClick={() => {
+              if (!newTypeName.trim()) return;
+              if (taskTypes.includes(newTypeName.trim())) {
+                toast.error('That type already exists.');
+                return;
+              }
+              addTaskType(newTypeName.trim());
+              setNewTypeName('');
+              toast.success(`Added "${newTypeName.trim()}"`);
+            }}
+            disabled={!newTypeName.trim()}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Add
+          </button>
+        </div>
       </section>
 
       {/* About */}

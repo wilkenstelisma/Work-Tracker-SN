@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect, useRef, ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTaskStore } from '../store/taskStore';
-import { Task, TaskStatus, Priority, TaskType, TaskFilters, FilterPreset } from '../types';
+import { Task, TaskStatus, Priority, TaskFilters, FilterPreset } from '../types';
+import { useTaskTypeStore } from '../store/taskTypeStore';
 import TaskCard from '../components/TaskCard';
 import TaskDetailPanel from '../components/TaskDetailPanel';
 import { format, parseISO, subDays, startOfWeek, endOfWeek } from 'date-fns';
@@ -19,10 +20,6 @@ const PRESETS_KEY = 'arc-filter-presets';
 
 const STATUSES: TaskStatus[] = ['Not Started', 'In Progress', 'Blocked', 'Under Review', 'Complete', 'Cancelled'];
 const PRIORITIES: Priority[] = ['Critical', 'High', 'Medium', 'Low'];
-const TASK_TYPES: TaskType[] = [
-  'System Admin', 'Digital Transformation', 'Audit Support', 'Risk Management',
-  'Reporting', 'Stakeholder Engagement', 'Ad-hoc', 'Custom',
-];
 const KANBAN_COLS: TaskStatus[] = ['Not Started', 'In Progress', 'Blocked', 'Under Review', 'Complete'];
 
 const statusColColors: Record<TaskStatus, string> = {
@@ -79,6 +76,7 @@ function DroppableColumn({ status, children, className }: { status: TaskStatus; 
 
 export default function AllTasks() {
   const { tasks, updateTask } = useTaskStore();
+  const { taskTypes } = useTaskTypeStore();
   const [searchParams] = useSearchParams();
   const [view, setView] = useState<'list' | 'kanban'>('list');
   const [filters, setFilters] = useState<TaskFilters>(defaultFilters());
@@ -513,7 +511,7 @@ export default function AllTasks() {
           {openFilterCol === 'type' && (
             <>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-1.5">Task Type</p>
-              {TASK_TYPES.map(t => (
+              {taskTypes.map(t => (
                 <label key={t} className="flex items-center gap-2.5 px-3 py-1.5 hover:bg-gray-50 cursor-pointer">
                   <input
                     type="checkbox"

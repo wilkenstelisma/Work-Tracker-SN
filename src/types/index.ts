@@ -38,7 +38,7 @@ export type MilestoneStatus = 'Upcoming' | 'In Progress' | 'Achieved' | 'Missed'
 
 export type RecurrencePattern = 'Daily' | 'Weekly' | 'Bi-weekly' | 'Monthly' | 'Quarterly' | 'Custom';
 
-export type AlertType = 'overdue' | 'due-today' | 'at-risk' | 'milestone-due-soon';
+export type AlertType = 'overdue' | 'due-today' | 'at-risk' | 'milestone-overdue' | 'milestone-due-soon';
 
 export interface UpdateEntry {
   id: string;
@@ -86,7 +86,7 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
-  taskType: TaskType;
+  taskType: string;
   status: TaskStatus;
   priority: Priority;
   dueDate: string;
@@ -127,7 +127,7 @@ export interface FilterPreset {
 export interface TaskFilters {
   statuses: TaskStatus[];
   priorities: Priority[];
-  types: TaskType[];
+  types: string[];
   dateFrom?: string;
   dateTo?: string;
   hasSubtasks?: boolean;

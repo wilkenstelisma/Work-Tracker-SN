@@ -8,13 +8,14 @@ interface NotificationPanelProps {
 }
 
 const typeConfig: Record<AlertType, { label: string; color: string; icon: string }> = {
-  overdue:            { label: 'Overdue',       color: 'text-red-600 bg-red-50',    icon: '🔴' },
-  'due-today':        { label: 'Due Today',     color: 'text-amber-700 bg-amber-50', icon: '🟡' },
-  'at-risk':          { label: 'At Risk',       color: 'text-orange-600 bg-orange-50', icon: '🟠' },
-  'milestone-due-soon': { label: 'Milestone',   color: 'text-blue-600 bg-blue-50',  icon: '🔵' },
+  overdue:              { label: 'Overdue',          color: 'text-red-600 bg-red-50',      icon: '🔴' },
+  'due-today':          { label: 'Due Today',        color: 'text-amber-700 bg-amber-50',  icon: '🟡' },
+  'at-risk':            { label: 'At Risk',          color: 'text-orange-600 bg-orange-50', icon: '🟠' },
+  'milestone-overdue':  { label: 'Milestone Overdue', color: 'text-red-600 bg-red-50',     icon: '🚩' },
+  'milestone-due-soon': { label: 'Milestone Soon',   color: 'text-blue-600 bg-blue-50',    icon: '🔵' },
 };
 
-const typeOrder: AlertType[] = ['overdue', 'due-today', 'at-risk', 'milestone-due-soon'];
+const typeOrder: AlertType[] = ['overdue', 'due-today', 'at-risk', 'milestone-overdue', 'milestone-due-soon'];
 
 export default function NotificationPanel({ onClose }: NotificationPanelProps) {
   const { alerts, dismissed, dismissAlert, clearAll } = useNotificationStore();
