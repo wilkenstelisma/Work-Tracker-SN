@@ -34,7 +34,7 @@ const TYPES: TaskType[] = ['System Admin', 'Digital Transformation', 'Audit Supp
 type Tab = 'details' | 'subtasks' | 'milestones' | 'updates' | 'history';
 
 export default function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps) {
-  const { updateTask, deleteTask, addUpdate, toggleSubtask, addSubtask, deleteSubtask, addMilestone, updateMilestone, deleteMilestone } = useTaskStore();
+  const { updateTask, deleteTask, addUpdate, toggleSubtask, addSubtask, deleteSubtask, addMilestone, updateMilestone, deleteMilestone, setMilestones } = useTaskStore();
   const [activeTab, setActiveTab] = useState<Tab>('details');
   const [isEditing, setIsEditing] = useState(false);
   const [newUpdate, setNewUpdate] = useState('');
@@ -87,6 +87,7 @@ export default function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps)
   function handleEditSave(data: Partial<Task>) {
     const { subtasks, milestones, ...rest } = data;
     updateTask(live.id, rest);
+    if (milestones) setMilestones(live.id, milestones);
     toast.success('Task updated');
     setIsEditing(false);
   }

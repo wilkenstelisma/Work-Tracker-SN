@@ -73,9 +73,13 @@ export default function TaskForm({ initial = {}, onSubmit, onCancel, isEdit = fa
     setNewSubtask('');
   }
 
+  function sortByDate(ms: Milestone[]) {
+    return [...ms].sort((a, b) => new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime());
+  }
+
   function addMilestone() {
     if (!newMsName.trim() || !newMsDate) return;
-    setMilestones(m => [...m, { id: uuidv4(), name: newMsName.trim(), targetDate: newMsDate, status: 'Upcoming' }]);
+    setMilestones(m => sortByDate([...m, { id: uuidv4(), name: newMsName.trim(), targetDate: newMsDate, status: 'Upcoming' }]));
     setNewMsName('');
     setNewMsDate('');
   }
@@ -236,7 +240,7 @@ export default function TaskForm({ initial = {}, onSubmit, onCancel, isEdit = fa
           {milestones.map(m => (
             <div key={m.id} className="flex items-center gap-2 group">
               <span className="text-sm flex-1 text-slate-700">{m.name}</span>
-              <input type="date" value={m.targetDate} onChange={e => setMilestones(ms => ms.map(x => x.id === m.id ? { ...x, targetDate: e.target.value } : x))} className="text-xs border border-gray-200 rounded px-2 py-1" />
+              <input type="date" value={m.targetDate} onChange={e => setMilestones(ms => sortByDate(ms.map(x => x.id === m.id ? { ...x, targetDate: e.target.value } : x)))} className="text-xs border border-gray-200 rounded px-2 py-1" />
               <select value={m.status} onChange={e => setMilestones(ms => ms.map(x => x.id === m.id ? { ...x, status: e.target.value as MilestoneStatus } : x))} className="text-xs border border-gray-200 rounded px-1 py-1">
                 {MS_STATUSES.map(s => <option key={s}>{s}</option>)}
               </select>

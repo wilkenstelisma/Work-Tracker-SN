@@ -62,6 +62,7 @@ interface TaskStore {
   addMilestone: (taskId: string, milestone: Omit<Milestone, 'id'>) => void;
   updateMilestone: (taskId: string, milestoneId: string, updates: Partial<Milestone>) => void;
   deleteMilestone: (taskId: string, milestoneId: string) => void;
+  setMilestones: (taskId: string, milestones: Milestone[]) => void;
   addUpdate: (taskId: string, text: string) => void;
   archiveOldCompleted: () => void;
   importTasks: (tasks: Task[]) => void;
@@ -197,6 +198,15 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     const tasks = get().tasks.map(task => {
       if (task.id !== taskId) return task;
       return { ...task, milestones: task.milestones.filter(m => m.id !== milestoneId), updatedAt: new Date().toISOString() };
+    });
+    saveTasks(tasks);
+    set({ tasks });
+  },
+
+  setMilestones: (taskId, milestones) => {
+    const tasks = get().tasks.map(task => {
+      if (task.id !== taskId) return task;
+      return { ...task, milestones, updatedAt: new Date().toISOString() };
     });
     saveTasks(tasks);
     set({ tasks });
