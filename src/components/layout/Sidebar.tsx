@@ -13,6 +13,7 @@ const items: NavItem[] = [
   { to: '/calendar', label: 'Calendar', icon: '📅' },
   { to: '/recurring', label: 'Recurring', icon: '↻' },
   { to: '/alerts', label: 'Alerts', icon: '🔔' },
+  { to: '/meeting-notes', label: 'Meeting Notes', icon: '📝' },
   { to: '/settings', label: 'Settings', icon: '⚙' },
 ];
 

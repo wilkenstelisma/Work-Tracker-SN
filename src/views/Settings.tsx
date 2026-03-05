@@ -10,6 +10,7 @@ const SETTINGS_KEY = 'arc-settings';
 interface AppSettings {
   defaultReminderDays: number;
   browserNotifications: boolean;
+  claudeApiKey?: string;
 }
 
 function loadSettings(): Partial<AppSettings> {
@@ -21,6 +22,8 @@ export default function Settings() {
   const { taskTypes, addTaskType, removeTaskType } = useTaskTypeStore();
   const [newTypeName, setNewTypeName] = useState('');
   const savedSettings = loadSettings();
+  const [claudeApiKey, setClaudeApiKey] = useState(savedSettings.claudeApiKey ?? '');
+  const [showApiKey, setShowApiKey] = useState(false);
   const [reminderDays, setReminderDays] = useState(savedSettings.defaultReminderDays ?? 2);
   const [browserNotifs, setBrowserNotifs] = useState(savedSettings.browserNotifications ?? false);
 
@@ -261,6 +264,57 @@ export default function Settings() {
           >
             Add
           </button>
+        </div>
+      </section>
+
+      {/* AI Integration */}
+      <section className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+        <div>
+          <h3 className="font-semibold text-slate-700 text-sm uppercase tracking-wide">AI Integration</h3>
+          <p className="text-xs text-gray-500 mt-1">Your API key is stored locally in your browser and never sent to any external server other than Anthropic.</p>
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-slate-700">Claude API Key</label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <input
+                type={showApiKey ? 'text' : 'password'}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                placeholder="sk-ant-..."
+                value={claudeApiKey}
+                onChange={e => setClaudeApiKey(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey(v => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
+              >
+                {showApiKey ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            <button
+              onClick={() => {
+                saveSettings({ claudeApiKey: claudeApiKey.trim() });
+                toast.success('API key saved.');
+              }}
+              disabled={!claudeApiKey.trim()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              Save
+            </button>
+          </div>
+          {claudeApiKey && (
+            <button
+              onClick={() => {
+                setClaudeApiKey('');
+                saveSettings({ claudeApiKey: '' });
+                toast.success('API key cleared.');
+              }}
+              className="text-xs text-red-500 hover:text-red-700"
+            >
+              Clear API key
+            </button>
+          )}
         </div>
       </section>
 

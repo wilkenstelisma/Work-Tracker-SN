@@ -10,6 +10,7 @@ import CalendarView from './views/CalendarView';
 import RecurringTasks from './views/RecurringTasks';
 import AlertsNotifications from './views/AlertsNotifications';
 import Settings from './views/Settings';
+import MeetingNotes from './views/MeetingNotes';
 import TaskForm from './components/TaskForm';
 import { useTaskStore } from './store/taskStore';
 import { useNotificationStore } from './store/notificationStore';
@@ -25,6 +26,7 @@ const pageTitles: Record<string, string> = {
   '/calendar': 'Calendar',
   '/recurring': 'Recurring Tasks',
   '/alerts': 'Alerts & Notifications',
+  '/meeting-notes': 'Meeting Notes',
   '/settings': 'Settings',
 };
 
@@ -99,6 +101,7 @@ function AppShell() {
             <Route path="/calendar" element={<CalendarView />} />
             <Route path="/recurring" element={<RecurringTasks />} />
             <Route path="/alerts" element={<AlertsNotifications />} />
+            <Route path="/meeting-notes" element={<MeetingNotes />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </main>

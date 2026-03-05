@@ -118,6 +118,15 @@ export interface AlertItem {
   date: string;
 }
 
+export interface MeetingNote {
+  id: string;
+  title: string;
+  meetingDate: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface FilterPreset {
   id: string;
   name: string;
