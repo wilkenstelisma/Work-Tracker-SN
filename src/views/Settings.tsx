@@ -283,6 +283,7 @@ export default function Settings() {
                 placeholder="sk-ant-..."
                 value={claudeApiKey}
                 onChange={e => setClaudeApiKey(e.target.value)}
+                onBlur={e => { if (e.target.value !== (loadSettings().claudeApiKey ?? '')) { saveSettings({ claudeApiKey: e.target.value.trim() }); } }}
               />
               <button
                 type="button"
