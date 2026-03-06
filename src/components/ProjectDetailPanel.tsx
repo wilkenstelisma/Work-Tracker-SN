@@ -262,7 +262,7 @@ export default function ProjectDetailPanel({ project, onClose }: ProjectDetailPa
                           className="flex-1 min-w-0 cursor-pointer"
                           onClick={() => setSelectedTask(task)}
                         >
-                          <p className="text-sm font-medium text-slate-800 truncate">{task.title}</p>
+                          <p className="text-sm font-medium text-slate-800 break-words">{task.title}</p>
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <span className={`text-xs px-1.5 py-0.5 rounded-full ${taskStatusColors[task.status]}`}>
                               {task.status}

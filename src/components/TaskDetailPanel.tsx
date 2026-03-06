@@ -112,7 +112,7 @@ export default function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps)
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               <p className="text-xs text-slate-400 mb-1">{live.taskType}</p>
-              <h2 className="text-white font-semibold text-lg leading-tight truncate">{live.title}</h2>
+              <h2 className="text-white font-semibold text-lg leading-tight break-words">{live.title}</h2>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <button onClick={() => setIsEditing(true)} className="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg transition-colors">Edit</button>
