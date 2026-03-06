@@ -66,6 +66,7 @@ export default function MeetingNotes() {
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState<NoteFormState>(emptyForm());
   const [isRefining, setIsRefining] = useState(false);
+  const [search, setSearch] = useState('');
 
   function openCreate() {
     setSelected(null);
@@ -124,9 +125,13 @@ export default function MeetingNotes() {
     toast.success('Note deleted.');
   }
 
-  const sorted = [...notes].sort(
-    (a, b) => new Date(b.meetingDate).getTime() - new Date(a.meetingDate).getTime()
-  );
+  const sorted = [...notes]
+    .sort((a, b) => new Date(b.meetingDate).getTime() - new Date(a.meetingDate).getTime())
+    .filter(n => {
+      if (!search.trim()) return true;
+      const q = search.toLowerCase();
+      return n.title.toLowerCase().includes(q) || n.notes.toLowerCase().includes(q);
+    });
 
   const showPanel = isCreating || selected !== null;
 
@@ -144,12 +149,28 @@ export default function MeetingNotes() {
           </button>
         </div>
 
+        <div className="px-4 py-2 border-b border-gray-100">
+          <input
+            type="text"
+            placeholder="Search notes..."
+            className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+
         <div className="flex-1 overflow-y-auto">
           {sorted.length === 0 ? (
             <div className="p-8 text-center text-gray-400">
               <p className="text-3xl mb-2">📝</p>
-              <p className="text-sm">No meeting notes yet.</p>
-              <p className="text-xs mt-1">Click "New Note" to get started.</p>
+              {search.trim() ? (
+                <p className="text-sm">No notes match "{search}".</p>
+              ) : (
+                <>
+                  <p className="text-sm">No meeting notes yet.</p>
+                  <p className="text-xs mt-1">Click "New Note" to get started.</p>
+                </>
+              )}
             </div>
           ) : (
             sorted.map(note => (
