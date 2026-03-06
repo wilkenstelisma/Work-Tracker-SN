@@ -174,19 +174,49 @@ export default function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps)
           {/* DETAILS TAB */}
           {activeTab === 'details' && (
             <div className="space-y-4">
-              {live.description && (
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Description</h4>
-                  <p className="text-sm text-slate-700 whitespace-pre-wrap">{live.description}</p>
-                </div>
-              )}
+              {/* Description — inline editable */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Description</h4>
+                <textarea
+                  key={live.id + '-desc'}
+                  className="w-full text-sm text-slate-700 bg-gray-50 rounded-lg p-3 border border-transparent hover:border-gray-200 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-y min-h-[80px] transition-colors"
+                  placeholder="Add a description..."
+                  defaultValue={live.description ?? ''}
+                  onBlur={e => {
+                    const val = e.target.value.trim();
+                    if (val !== (live.description ?? '').trim()) {
+                      updateTask(live.id, { description: val || undefined });
+                    }
+                  }}
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
-                {live.startDate && (
-                  <div>
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Start Date</h4>
-                    <p className="text-sm text-slate-700">{format(parseISO(live.startDate), 'MMM d, yyyy')}</p>
-                  </div>
-                )}
+                {/* Start Date — inline editable */}
+                <div>
+                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Start Date</h4>
+                  <input
+                    type="date"
+                    className="w-full border border-transparent hover:border-gray-200 focus:border-blue-400 rounded-lg px-2 py-1.5 text-sm text-slate-700 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-400 transition-colors"
+                    value={live.startDate ?? ''}
+                    onChange={e => updateTask(live.id, { startDate: e.target.value || undefined })}
+                  />
+                </div>
+                {/* Due Date — inline editable */}
+                <div>
+                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Due Date</h4>
+                  <input
+                    type="date"
+                    className="w-full border border-transparent hover:border-gray-200 focus:border-blue-400 rounded-lg px-2 py-1.5 text-sm text-slate-700 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-400 transition-colors"
+                    value={live.dueDate}
+                    onChange={e => {
+                      if (e.target.value) {
+                        updateTask(live.id, { dueDate: e.target.value });
+                        toast.success('Due date updated');
+                      }
+                    }}
+                  />
+                </div>
                 {live.assignee && (
                   <div>
                     <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Assignee</h4>
@@ -208,12 +238,25 @@ export default function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps)
                   </div>
                 )}
               </div>
-              {live.notes && (
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Notes</h4>
-                  <p className="text-sm text-slate-700 whitespace-pre-wrap bg-gray-50 rounded-lg p-3">{live.notes}</p>
-                </div>
-              )}
+
+              {/* Notes — inline editable */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Notes</h4>
+                <textarea
+                  key={live.id + '-notes'}
+                  className="w-full text-sm text-slate-700 bg-gray-50 rounded-lg p-3 border border-transparent hover:border-gray-200 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-y transition-colors"
+                  rows={4}
+                  placeholder="Add notes..."
+                  defaultValue={live.notes ?? ''}
+                  onBlur={e => {
+                    const val = e.target.value.trim();
+                    if (val !== (live.notes ?? '').trim()) {
+                      updateTask(live.id, { notes: val || undefined });
+                    }
+                  }}
+                />
+              </div>
+
               {live.isRecurring && live.recurrence && (
                 <div>
                   <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Recurrence</h4>
