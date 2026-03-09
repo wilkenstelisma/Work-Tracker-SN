@@ -50,10 +50,19 @@ export default function MilestoneTimeline({ milestones, onUpdate, onDelete }: Mi
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="text-sm font-medium text-slate-800">{ms.name}</p>
-                  <p className={`text-xs mt-0.5 ${effectiveStatus === 'Missed' ? 'text-red-500 font-semibold' : 'text-gray-500'}`}>
-                    {effectiveStatus === 'Missed' ? '⚠ Overdue · ' : ''}
-                    {format(parseISO(ms.targetDate), 'MMM d, yyyy')}
-                  </p>
+                  <div className={`flex items-center gap-1 text-xs mt-0.5 ${effectiveStatus === 'Missed' ? 'text-red-500 font-semibold' : 'text-gray-500'}`}>
+                    {effectiveStatus === 'Missed' && <span>⚠ Overdue ·</span>}
+                    {onUpdate ? (
+                      <input
+                        type="date"
+                        value={ms.targetDate}
+                        onChange={e => { if (e.target.value) onUpdate(ms.id, { targetDate: e.target.value }); }}
+                        className="text-xs bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-400 focus:outline-none cursor-pointer"
+                      />
+                    ) : (
+                      <span>{format(parseISO(ms.targetDate), 'MMM d, yyyy')}</span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   {onUpdate && (
