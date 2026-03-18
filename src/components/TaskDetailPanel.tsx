@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { Task, TaskStatus, Priority, TaskType, Milestone } from '../types';
 import { useTaskStore } from '../store/taskStore';
 import { format, parseISO } from 'date-fns';
@@ -43,6 +44,8 @@ export default function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps)
   const [showChangelogFull, setShowChangelogFull] = useState(false);
   const [newMsName, setNewMsName] = useState('');
   const [newMsDate, setNewMsDate] = useState('');
+  const [newLinkLabel, setNewLinkLabel] = useState('');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
 
   // Get the latest task from store to always show fresh data
   const { tasks } = useTaskStore();
@@ -82,6 +85,22 @@ export default function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps)
     deleteTask(live.id);
     toast.success('Task deleted');
     onClose();
+  }
+
+  function handleAddLink() {
+    const label = newLinkLabel.trim();
+    const url = newLinkUrl.trim();
+    if (!label || !url) return;
+    const newLink = { id: uuidv4(), label, url };
+    updateTask(live.id, { links: [...live.links, newLink] });
+    setNewLinkLabel('');
+    setNewLinkUrl('');
+    toast.success('Link added');
+  }
+
+  function handleDeleteLink(linkId: string) {
+    updateTask(live.id, { links: live.links.filter(l => l.id !== linkId) });
+    toast.success('Link removed');
   }
 
   function handleEditSave(data: Partial<Task>) {
@@ -266,26 +285,58 @@ export default function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps)
                   </p>
                 </div>
               )}
-              {live.links && live.links.length > 0 && (
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Related Links</h4>
-                  <div className="space-y-1.5">
-                    {live.links.map(l => (
+              <div>
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Related Links</h4>
+                <div className="space-y-1.5 mb-3">
+                  {live.links.length === 0 && (
+                    <p className="text-sm text-gray-400 italic">No links yet.</p>
+                  )}
+                  {live.links.map(l => (
+                    <div key={l.id} className="flex items-center gap-2 group">
+                      <span className="text-blue-400 flex-shrink-0">🔗</span>
                       <a
-                        key={l.id}
                         href={l.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:underline group"
+                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline truncate flex-1"
                       >
-                        <span className="text-blue-400 flex-shrink-0">🔗</span>
-                        <span className="truncate">{l.label}</span>
-                        <span className="text-xs text-gray-400 truncate hidden group-hover:inline max-w-[200px]">{l.url}</span>
+                        {l.label}
                       </a>
-                    ))}
-                  </div>
+                      <span className="text-xs text-gray-400 truncate hidden group-hover:inline max-w-[160px]">{l.url}</span>
+                      <button
+                        onClick={() => handleDeleteLink(l.id)}
+                        className="text-gray-300 hover:text-red-500 text-sm opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                        title="Remove link"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              )}
+                <div className="flex gap-2">
+                  <input
+                    className="w-32 border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Label"
+                    value={newLinkLabel}
+                    onChange={e => setNewLinkLabel(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddLink())}
+                  />
+                  <input
+                    className="flex-1 border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="https://..."
+                    value={newLinkUrl}
+                    onChange={e => setNewLinkUrl(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddLink())}
+                  />
+                  <button
+                    onClick={handleAddLink}
+                    disabled={!newLinkLabel.trim() || !newLinkUrl.trim()}
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
