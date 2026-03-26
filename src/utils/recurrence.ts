@@ -1,5 +1,6 @@
 import { addDays, addWeeks, addMonths, addQuarters, parseISO, format } from 'date-fns';
-import { Task, RecurrencePattern } from '../types';
+import { Task, RecurrencePattern, UpdateEntry } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
 function nextDueDate(current: string, pattern: RecurrencePattern, interval: number): string {
   const date = parseISO(current);
@@ -38,7 +39,14 @@ export function generateNextInstance(task: Task): Partial<Task> {
     dueDate: newDue,
     status: 'Not Started',
     completedAt: undefined,
-    updates: [],
+    updates: [
+      ...task.updates,
+      {
+        id: uuidv4(),
+        timestamp: new Date().toISOString(),
+        text: `── Cycle #${cycleCount + 1} completed (${format(new Date(), 'MMM d, yyyy')}) ──`,
+      } as UpdateEntry,
+    ],
     subtasks: task.subtasks.map(s => ({ ...s, status: 'Open' as const })),
     recurrence: {
       ...task.recurrence,
