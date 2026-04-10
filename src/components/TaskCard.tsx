@@ -1,5 +1,6 @@
 import { Task, Priority, TaskStatus } from '../types';
 import { format, parseISO, isBefore, isToday } from 'date-fns';
+import { useProjectStore } from '../store/projectStore';
 
 interface TaskCardProps {
   task: Task;
@@ -47,6 +48,8 @@ function dueDateStyle(dueDate: string, status: TaskStatus) {
 }
 
 export default function TaskCard({ task, onClick, className = '' }: TaskCardProps) {
+  const { projects } = useProjectStore();
+  const project = task.projectId ? projects.find(p => p.id === task.projectId) : null;
   const done = task.subtasks.filter(s => s.status === 'Done').length;
   const total = task.subtasks.length;
   const progress = total > 0 ? Math.round((done / total) * 100) : null;
@@ -77,6 +80,11 @@ export default function TaskCard({ task, onClick, className = '' }: TaskCardProp
         <span className={`text-xs px-2 py-0.5 rounded-full ${typeColors[task.taskType] || 'bg-gray-100 text-gray-600'}`}>
           {task.taskType}
         </span>
+        {project && (
+          <span className="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium">
+            {project.name}
+          </span>
+        )}
       </div>
 
       <div className="flex items-center justify-between text-xs">

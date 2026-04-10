@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTaskStore } from '../store/taskStore';
 import { Task, TaskStatus, Priority, TaskFilters, FilterPreset } from '../types';
 import { useTaskTypeStore } from '../store/taskTypeStore';
+import { useProjectStore } from '../store/projectStore';
 import TaskCard from '../components/TaskCard';
 import TaskDetailPanel from '../components/TaskDetailPanel';
 import { format, parseISO, subDays, startOfWeek, endOfWeek } from 'date-fns';
@@ -77,6 +78,7 @@ function DroppableColumn({ status, children, className }: { status: TaskStatus; 
 export default function AllTasks() {
   const { tasks, updateTask } = useTaskStore();
   const { taskTypes } = useTaskTypeStore();
+  const { projects } = useProjectStore();
   const [searchParams] = useSearchParams();
   const [view, setView] = useState<'list' | 'kanban'>('list');
   const [filters, setFilters] = useState<TaskFilters>(defaultFilters());
@@ -428,6 +430,10 @@ export default function AllTasks() {
                         <td className="px-4 py-3">
                           <span className="font-medium text-slate-800">{task.title}</span>
                           {task.isRecurring && <span className="ml-1 text-blue-400 text-xs">↻</span>}
+                          {task.projectId && (() => {
+                            const proj = projects.find(p => p.id === task.projectId);
+                            return proj ? <div className="text-xs text-violet-600 mt-0.5">{proj.name}</div> : null;
+                          })()}
                         </td>
                         <td className="px-4 py-3 text-gray-600 text-xs">{task.taskType}</td>
                         <td className="px-4 py-3">
